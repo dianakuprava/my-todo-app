@@ -1,0 +1,57 @@
+.new-todo-form {
+  display: flex;
+  position: relative;
+  margin-bottom: 0;
+}
+
+.new-todo,
+.new-todo-form__timer {
+  position: relative;
+  margin: 0;
+  font-size: 24px;
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: 1.4em;
+  color: inherit;
+  padding: 16px;
+  border: none;
+  background: rgba(0, 0, 0, 0.003);
+  box-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.03);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.new-todo {
+  flex-grow: 1;
+  padding-left: 60px;
+}
+
+.new-todo-form__timer {
+  width: 80px;
+  text-align: center;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.new-todo-form__timer::placeholder {
+  color: #bfbfbf;
+  font-style: italic;
+}
+
+.todoapp input::-webkit-input-placeholder {
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.todoapp input::-moz-placeholder {
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.todoapp input::input-placeholder {
+  font-style: italic;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.4);
+}
