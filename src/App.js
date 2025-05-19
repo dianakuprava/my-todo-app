@@ -18,8 +18,8 @@ export default class App extends Component {
       id: Date.now(),
       description: description.trim(),
       created: new Date(),
-      minutes: parseInt(minutes, 10) || 0, // Явное преобразование
-      seconds: parseInt(seconds, 10) || 0, // Явное преобразование
+      minutes: parseInt(minutes, 10) || 0,
+      seconds: parseInt(seconds, 10) || 0,
       completed: false,
     };
 

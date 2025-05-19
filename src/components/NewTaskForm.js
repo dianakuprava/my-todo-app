@@ -18,13 +18,13 @@ export default class NewTaskForm extends Component {
 
   handleMinutesChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
-    const minutes = Math.min(59, parseInt(value, 10) || 0); // Исправлена синтаксическая ошибка
+    const minutes = Math.min(59, parseInt(value, 10) || 0);
     this.setState({ minutes: value === '' ? '' : String(minutes) });
   };
 
   handleSecondsChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
-    const seconds = Math.min(59, parseInt(value, 10) || 0); // Исправлена синтаксическая ошибка
+    const seconds = Math.min(59, parseInt(value, 10) || 0);
     this.setState({ seconds: value === '' ? '' : String(seconds) });
   };
 
@@ -66,7 +66,6 @@ export default class NewTaskForm extends Component {
               placeholder='Min'
               value={minutes}
               onChange={this.handleMinutesChange}
-              maxLength='2'
             />
             <input
               type='text'
@@ -74,7 +73,6 @@ export default class NewTaskForm extends Component {
               placeholder='Sec'
               value={seconds}
               onChange={this.handleSecondsChange}
-              maxLength='2'
             />
           </div>
           <input type='submit' hidden />
