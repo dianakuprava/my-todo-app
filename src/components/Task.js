@@ -8,36 +8,48 @@ export default class Task extends Component {
     editing: false,
     editText: this.props.description,
     isRunning: false,
-    elapsedTime: this.props.duration || 0,
-    startTime: null,
+    remainingMinutes: Number(this.props.minutes) || 0,
+    remainingSeconds: Number(this.props.seconds) || 0,
+    timerId: null,
   };
+
+  componentWillUnmount() {
+    clearInterval(this.state.timerId);
+  }
 
   handlePlay = () => {
     if (!this.state.isRunning) {
-      this.setState({
-        isRunning: true,
-        startTime: Date.now() - this.state.elapsedTime * 1000,
-      });
+      const timerId = setInterval(() => {
+        this.setState((prevState) => {
+          let { remainingMinutes, remainingSeconds } = prevState;
+
+          if (remainingMinutes === 0 && remainingSeconds === 0) {
+            clearInterval(timerId);
+            return { isRunning: false };
+          }
+
+          if (remainingSeconds === 0) {
+            remainingMinutes -= 1;
+            remainingSeconds = 59;
+          } else {
+            remainingSeconds -= 1;
+          }
+
+          return {
+            remainingMinutes: Math.max(0, remainingMinutes),
+            remainingSeconds: Math.max(0, remainingSeconds),
+          };
+        });
+      }, 1000);
+
+      this.setState({ isRunning: true, timerId });
     }
   };
 
   handlePause = () => {
+    clearInterval(this.state.timerId);
     this.setState({ isRunning: false });
   };
-
-  componentDidMount() {
-    this.timer = setInterval(() => {
-      if (this.state.isRunning) {
-        const currentTime =
-          Math.floor((Date.now() - this.state.startTime) / 1000) + this.props.duration;
-        this.setState({ elapsedTime: currentTime });
-      }
-    }, 1000);
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer);
-  }
 
   handleEditChange = (e) => {
     this.setState({ editText: e.target.value });
@@ -68,12 +80,11 @@ export default class Task extends Component {
 
   render() {
     const { description, completed, created } = this.props;
-    const { editing, editText, elapsedTime, isRunning } = this.state;
+    const { editing, editText, remainingMinutes, remainingSeconds, isRunning } = this.state;
 
     const timeAgo = formatDistanceToNow(created, { addSuffix: true });
-    const minutes = Math.floor(elapsedTime / 60);
-    const seconds = elapsedTime % 60;
-    const timerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+    const timerText = `${remainingMinutes}:${formattedSeconds}`;
 
     return (
       <li className={`${completed ? 'completed' : ''} ${editing ? 'editing' : ''}`}>
@@ -89,8 +100,15 @@ export default class Task extends Component {
             <span className='timer-wrapper'>
               <button
                 type='button'
-                className={`timer-icon ${isRunning ? 'icon-pause' : 'icon-play'}`}
-                onClick={isRunning ? this.handlePause : this.handlePlay}
+                className='timer-icon icon-play'
+                onClick={this.handlePlay}
+                disabled={isRunning || (remainingMinutes === 0 && remainingSeconds === 0)}
+              />
+              <button
+                type='button'
+                className='timer-icon icon-pause'
+                onClick={this.handlePause}
+                disabled={!isRunning}
               />
               <span className='timer-value'>{timerText}</span>
             </span>
@@ -119,8 +137,9 @@ Task.propTypes = {
   id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   description: PropTypes.string.isRequired,
   completed: PropTypes.bool.isRequired,
-  created: PropTypes.instanceOf(Date).isRequired,
-  duration: PropTypes.number,
+  created: PropTypes.instanceOf(Date),
+  minutes: PropTypes.number,
+  seconds: PropTypes.number,
   onToggle: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
@@ -128,4 +147,6 @@ Task.propTypes = {
 
 Task.defaultProps = {
   created: new Date(),
+  minutes: 0,
+  seconds: 0,
 };

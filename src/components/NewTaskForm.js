@@ -18,14 +18,14 @@ export default class NewTaskForm extends Component {
 
   handleMinutesChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
-    const minutes = Math.min(59, parseInt(value) || 0);
-    this.setState({ minutes: String(minutes) });
+    const minutes = Math.min(59, parseInt(value, 10) || 0); // Исправлена синтаксическая ошибка
+    this.setState({ minutes: value === '' ? '' : String(minutes) });
   };
 
   handleSecondsChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '');
-    const seconds = Math.min(59, parseInt(value) || 0);
-    this.setState({ seconds: String(seconds) });
+    const seconds = Math.min(59, parseInt(value, 10) || 0); // Исправлена синтаксическая ошибка
+    this.setState({ seconds: value === '' ? '' : String(seconds) });
   };
 
   handleSubmit = (e) => {
@@ -57,11 +57,6 @@ export default class NewTaskForm extends Component {
             placeholder='What needs to be done?'
             value={inputValue}
             onChange={this.handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                this.handleSubmit(e);
-              }
-            }}
             autoFocus
           />
           <div className='timer-inputs'>
@@ -71,6 +66,7 @@ export default class NewTaskForm extends Component {
               placeholder='Min'
               value={minutes}
               onChange={this.handleMinutesChange}
+              maxLength='2'
             />
             <input
               type='text'
@@ -78,8 +74,10 @@ export default class NewTaskForm extends Component {
               placeholder='Sec'
               value={seconds}
               onChange={this.handleSecondsChange}
+              maxLength='2'
             />
           </div>
+          <input type='submit' hidden />
         </form>
       </header>
     );

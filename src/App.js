@@ -18,13 +18,12 @@ export default class App extends Component {
       id: Date.now(),
       description: description.trim(),
       created: new Date(),
-      duration: (parseInt(minutes) || 0) * 60 + (parseInt(seconds) || 0),
+      minutes: parseInt(minutes, 10) || 0, // Явное преобразование
+      seconds: parseInt(seconds, 10) || 0, // Явное преобразование
       completed: false,
     };
 
-    this.setState((prevState) => ({
-      tasks: [...prevState.tasks, newTask],
-    }));
+    this.setState({ tasks: [...this.state.tasks, newTask] });
   };
 
   updateTask = (id, newDescription) => {

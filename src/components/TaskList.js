@@ -11,7 +11,12 @@ export default class TaskList extends Component {
         {tasks.map((task) => (
           <Task
             key={task.id}
-            {...task}
+            id={task.id}
+            description={task.description}
+            completed={task.completed}
+            created={task.created}
+            minutes={task.minutes}
+            seconds={task.seconds}
             onEdit={onEdit}
             onToggle={() => onToggle(task.id)}
             onDelete={() => onDelete(task.id)}
