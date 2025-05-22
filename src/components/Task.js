@@ -78,9 +78,15 @@ export default class Task extends Component {
             <span className='timer-wrapper'>
               <button
                 type='button'
-                className={`timer-icon ${isRunning ? 'icon-pause' : 'icon-play'}`}
-                onClick={isRunning ? () => onPause(this.props.id) : () => onPlay(this.props.id)}
-                disabled={remainingSeconds <= 0} // Отключаем если время вышло
+                className='timer-icon icon-play'
+                onClick={() => onPlay(this.props.id)}
+                disabled={isRunning || remainingSeconds <= 0}
+              />
+              <button
+                type='button'
+                className='timer-icon icon-pause'
+                onClick={() => onPause(this.props.id)}
+                disabled={!isRunning}
               />
               <span className='timer-value'>{timerText}</span>
             </span>
