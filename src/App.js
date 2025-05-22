@@ -10,8 +10,55 @@ export default class App extends Component {
     this.state = {
       tasks: [],
       filter: 'All',
+      activeTimers: {},
     };
+    this.timerInterval = null;
   }
+
+  componentDidMount() {
+    this.timerInterval = setInterval(() => {
+      this.setState((prevState) => {
+        const updatedTimers = { ...prevState.activeTimers };
+        Object.keys(updatedTimers).forEach((taskId) => {
+          if (updatedTimers[taskId].isRunning) {
+            updatedTimers[taskId].elapsedTime = Math.floor(
+              (Date.now() - updatedTimers[taskId].startTime) / 1000,
+            );
+          }
+        });
+        return { activeTimers: updatedTimers };
+      });
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timerInterval);
+  }
+
+  handlePlayTimer = (taskId) => {
+    this.setState((prevState) => ({
+      activeTimers: {
+        ...prevState.activeTimers,
+        [taskId]: {
+          isRunning: true,
+          startTime: Date.now() - (prevState.activeTimers[taskId]?.elapsedTime || 0) * 1000,
+          elapsedTime: prevState.activeTimers[taskId]?.elapsedTime || 0,
+        },
+      },
+    }));
+  };
+
+  handlePauseTimer = (taskId) => {
+    this.setState((prevState) => ({
+      activeTimers: {
+        ...prevState.activeTimers,
+        [taskId]: {
+          ...prevState.activeTimers[taskId],
+          isRunning: false,
+        },
+      },
+    }));
+  };
 
   addTask = (description, minutes, seconds) => {
     const newTask = {
@@ -74,7 +121,11 @@ export default class App extends Component {
   };
 
   render() {
-    const filteredTasks = this.getFilteredTasks();
+    const filteredTasks = this.getFilteredTasks().map((task) => ({
+      ...task,
+      elapsedTime: this.state.activeTimers[task.id]?.elapsedTime || 0,
+      isRunning: this.state.activeTimers[task.id]?.isRunning || false,
+    }));
 
     return (
       <div className='todoapp'>
@@ -85,6 +136,8 @@ export default class App extends Component {
             onEdit={this.updateTask}
             onToggle={this.toggleCompleted}
             onDelete={this.deleteTask}
+            onPlayTimer={this.handlePlayTimer}
+            onPauseTimer={this.handlePauseTimer}
           />
         </section>
         <Footer

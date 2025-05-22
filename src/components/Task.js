@@ -7,48 +7,6 @@ export default class Task extends Component {
   state = {
     editing: false,
     editText: this.props.description,
-    isRunning: false,
-    remainingMinutes: Number(this.props.minutes) || 0,
-    remainingSeconds: Number(this.props.seconds) || 0,
-    timerId: null,
-  };
-
-  componentWillUnmount() {
-    clearInterval(this.state.timerId);
-  }
-
-  handlePlay = () => {
-    if (!this.state.isRunning) {
-      const timerId = setInterval(() => {
-        this.setState((prevState) => {
-          let { remainingMinutes, remainingSeconds } = prevState;
-
-          if (remainingMinutes === 0 && remainingSeconds === 0) {
-            clearInterval(timerId);
-            return { isRunning: false };
-          }
-
-          if (remainingSeconds === 0) {
-            remainingMinutes -= 1;
-            remainingSeconds = 59;
-          } else {
-            remainingSeconds -= 1;
-          }
-
-          return {
-            remainingMinutes: Math.max(0, remainingMinutes),
-            remainingSeconds: Math.max(0, remainingSeconds),
-          };
-        });
-      }, 1000);
-
-      this.setState({ isRunning: true, timerId });
-    }
-  };
-
-  handlePause = () => {
-    clearInterval(this.state.timerId);
-    this.setState({ isRunning: false });
   };
 
   handleEditChange = (e) => {
@@ -67,7 +25,10 @@ export default class Task extends Component {
   };
 
   handleEditClick = () => {
-    this.setState({ editing: true, editText: this.props.description });
+    this.setState({
+      editing: true,
+      editText: this.props.description,
+    });
   };
 
   handleToggle = () => {
@@ -79,12 +40,28 @@ export default class Task extends Component {
   };
 
   render() {
-    const { description, completed, created } = this.props;
-    const { editing, editText, remainingMinutes, remainingSeconds, isRunning } = this.state;
+    const {
+      description,
+      completed,
+      created,
+      minutes = 0,
+      seconds = 0,
+      elapsedTime = 0,
+      isRunning = false,
+      onPlay,
+      onPause,
+    } = this.props;
+
+    const { editing, editText } = this.state;
 
     const timeAgo = formatDistanceToNow(created, { addSuffix: true });
-    const formattedSeconds = String(remainingSeconds).padStart(2, '0');
-    const timerText = `${remainingMinutes}:${formattedSeconds}`;
+
+    const totalInitialSeconds = minutes * 60 + seconds;
+    const remainingSeconds = Math.max(0, totalInitialSeconds - elapsedTime);
+    const displayMinutes = Math.floor(remainingSeconds / 60);
+    const displaySeconds = remainingSeconds % 60;
+
+    const timerText = `${displayMinutes}:${displaySeconds < 10 ? '0' : ''}${displaySeconds}`;
 
     return (
       <li className={`${completed ? 'completed' : ''} ${editing ? 'editing' : ''}`}>
@@ -95,20 +72,15 @@ export default class Task extends Component {
             checked={completed}
             onChange={this.handleToggle}
           />
+
           <label>
             <span className='description'>{description}</span>
             <span className='timer-wrapper'>
               <button
                 type='button'
-                className='timer-icon icon-play'
-                onClick={this.handlePlay}
-                disabled={isRunning || (remainingMinutes === 0 && remainingSeconds === 0)}
-              />
-              <button
-                type='button'
-                className='timer-icon icon-pause'
-                onClick={this.handlePause}
-                disabled={!isRunning}
+                className={`timer-icon ${isRunning ? 'icon-pause' : 'icon-play'}`}
+                onClick={isRunning ? () => onPause(this.props.id) : () => onPlay(this.props.id)}
+                disabled={remainingSeconds <= 0} // Отключаем если время вышло
               />
               <span className='timer-value'>{timerText}</span>
             </span>
@@ -140,13 +112,19 @@ Task.propTypes = {
   created: PropTypes.instanceOf(Date),
   minutes: PropTypes.number,
   seconds: PropTypes.number,
+  elapsedTime: PropTypes.number,
+  isRunning: PropTypes.bool,
   onToggle: PropTypes.func.isRequired,
   onDelete: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
+  onPlay: PropTypes.func.isRequired,
+  onPause: PropTypes.func.isRequired,
 };
 
 Task.defaultProps = {
   created: new Date(),
   minutes: 0,
   seconds: 0,
+  elapsedTime: 0,
+  isRunning: false,
 };
