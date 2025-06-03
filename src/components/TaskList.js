@@ -1,29 +1,27 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Task from './Task';
 import './TaskList.css';
 
-export default class TaskList extends Component {
-  render() {
-    const { tasks, onEdit, onToggle, onDelete, onPlayTimer, onPauseTimer } = this.props;
-
-    return (
-      <ul className='todo-list'>
-        {tasks.map((task) => (
-          <Task
-            key={task.id}
-            {...task}
-            onEdit={onEdit}
-            onToggle={onToggle}
-            onDelete={onDelete}
-            onPlay={onPlayTimer}
-            onPause={onPauseTimer}
-          />
-        ))}
-      </ul>
-    );
-  }
+function TaskList({ tasks, onEdit, onToggle, onDelete, onPlayTimer, onPauseTimer }) {
+  return (
+    <ul className='todo-list'>
+      {tasks.map((task) => (
+        <Task
+          key={task.id}
+          {...task}
+          onEdit={onEdit}
+          onToggle={onToggle}
+          onDelete={onDelete}
+          onPlay={onPlayTimer}
+          onPause={onPauseTimer}
+        />
+      ))}
+    </ul>
+  );
 }
+
+export default TaskList;
 
 TaskList.propTypes = {
   tasks: PropTypes.arrayOf(

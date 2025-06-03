@@ -1,115 +1,85 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, { useState, useEffect } from 'react';
 import NewTaskForm from './components/NewTaskForm';
 import TaskList from './components/TaskList';
 import Footer from './components/Footer';
+import './App.css';
 
-export default class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      tasks: [],
-      filter: 'All',
-      activeTimers: {},
-    };
-    this.timerInterval = null;
-  }
+function App() {
+  const [tasks, setTasks] = useState([]);
+  const [filter, setFilter] = useState('All');
+  const [activeTimers, setActiveTimers] = useState({});
 
-  componentDidMount() {
-    this.timerInterval = setInterval(() => {
-      this.setState((prevState) => {
-        const updatedTimers = { ...prevState.activeTimers };
-        Object.keys(updatedTimers).forEach((taskId) => {
-          if (updatedTimers[taskId].isRunning) {
-            updatedTimers[taskId].elapsedTime = Math.floor(
-              (Date.now() - updatedTimers[taskId].startTime) / 1000,
+  useEffect(() => {
+    const timerInterval = setInterval(() => {
+      setActiveTimers((prev) => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach((taskId) => {
+          if (updated[taskId].isRunning) {
+            updated[taskId].elapsedTime = Math.floor(
+              (Date.now() - updated[taskId].startTime) / 1000,
             );
           }
         });
-        return { activeTimers: updatedTimers };
+        return updated;
       });
     }, 1000);
-  }
+    return () => clearInterval(timerInterval);
+  }, []);
 
-  componentWillUnmount() {
-    clearInterval(this.timerInterval);
-  }
-
-  handlePlayTimer = (taskId) => {
-    this.setState((prevState) => ({
-      activeTimers: {
-        ...prevState.activeTimers,
-        [taskId]: {
-          isRunning: true,
-          startTime: Date.now() - (prevState.activeTimers[taskId]?.elapsedTime || 0) * 1000,
-          elapsedTime: prevState.activeTimers[taskId]?.elapsedTime || 0,
-        },
-      },
-    }));
-  };
-
-  handlePauseTimer = (taskId) => {
-    this.setState((prevState) => ({
-      activeTimers: {
-        ...prevState.activeTimers,
-        [taskId]: {
-          ...prevState.activeTimers[taskId],
-          isRunning: false,
-        },
-      },
-    }));
-  };
-
-  addTask = (description, minutes, seconds) => {
+  const addTask = (text, minutes, seconds) => {
     const newTask = {
       id: Date.now(),
-      description: description.trim(),
+      description: text,
       created: new Date(),
-      minutes: parseInt(minutes, 10) || 0,
-      seconds: parseInt(seconds, 10) || 0,
+      minutes: parseInt(minutes) || 0,
+      seconds: parseInt(seconds) || 0,
       completed: false,
     };
-
-    this.setState({ tasks: [...this.state.tasks, newTask] });
+    setTasks([...tasks, newTask]);
   };
 
-  updateTask = (id, newDescription) => {
-    this.setState((prevState) => ({
-      tasks: prevState.tasks.map((task) =>
-        task.id === id ? { ...task, description: newDescription } : task,
-      ),
+  const updateTask = (id, newText) => {
+    setTasks(tasks.map((task) => (task.id === id ? { ...task, description: newText } : task)));
+  };
+
+  const toggleCompleted = (id) => {
+    setTasks(
+      tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task)),
+    );
+  };
+
+  const deleteTask = (id) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+  };
+
+  const handlePlayTimer = (taskId) => {
+    setActiveTimers((prev) => ({
+      ...prev,
+      [taskId]: {
+        isRunning: true,
+        startTime: Date.now() - (prev[taskId]?.elapsedTime || 0) * 1000,
+        elapsedTime: prev[taskId]?.elapsedTime || 0,
+      },
     }));
   };
 
-  toggleCompleted = (id) => {
-    this.setState((prevState) => ({
-      tasks: prevState.tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
-      ),
+  const handlePauseTimer = (taskId) => {
+    setActiveTimers((prev) => ({
+      ...prev,
+      [taskId]: {
+        ...prev[taskId],
+        isRunning: false,
+      },
     }));
   };
 
-  deleteTask = (id) => {
-    this.setState((prevState) => ({
-      tasks: prevState.tasks.filter((task) => task.id !== id),
-    }));
+  const handleClearCompleted = () => {
+    setTasks(tasks.filter((task) => !task.completed));
   };
 
-  handleClearCompleted = () => {
-    this.setState((prevState) => ({
-      tasks: prevState.tasks.filter((task) => !task.completed),
-    }));
-  };
+  const getActiveTasksCount = () => tasks.filter((task) => !task.completed).length;
 
-  handleFilterChange = (newFilter) => {
-    this.setState({ filter: newFilter });
-  };
-
-  getActiveTasksCount = () => this.state.tasks.filter((task) => !task.completed).length;
-
-  getFilteredTasks = () => {
-    const { tasks, filter } = this.state;
-
+  const getFilteredTasks = () => {
     switch (filter) {
       case 'Active':
         return tasks.filter((task) => !task.completed);
@@ -119,34 +89,31 @@ export default class App extends Component {
         return tasks;
     }
   };
-
-  render() {
-    const filteredTasks = this.getFilteredTasks().map((task) => ({
-      ...task,
-      elapsedTime: this.state.activeTimers[task.id]?.elapsedTime || 0,
-      isRunning: this.state.activeTimers[task.id]?.isRunning || false,
-    }));
-
-    return (
-      <div className='todoapp'>
-        <NewTaskForm addTask={this.addTask} />
-        <section className='main'>
-          <TaskList
-            tasks={filteredTasks}
-            onEdit={this.updateTask}
-            onToggle={this.toggleCompleted}
-            onDelete={this.deleteTask}
-            onPlayTimer={this.handlePlayTimer}
-            onPauseTimer={this.handlePauseTimer}
-          />
-        </section>
-        <Footer
-          activeTasksCount={this.getActiveTasksCount()}
-          filter={this.state.filter}
-          onFilterChange={this.handleFilterChange}
-          onClearCompleted={this.handleClearCompleted}
+  return (
+    <div className='todoapp'>
+      <NewTaskForm addTask={addTask} />
+      <section className='main'>
+        <TaskList
+          tasks={getFilteredTasks().map((task) => ({
+            ...task,
+            elapsedTime: activeTimers[task.id]?.elapsedTime || 0,
+            isRunning: activeTimers[task.id]?.isRunning || false,
+          }))}
+          onToggle={toggleCompleted}
+          onDelete={deleteTask}
+          onEdit={updateTask}
+          onPlayTimer={handlePlayTimer}
+          onPauseTimer={handlePauseTimer}
         />
-      </div>
-    );
-  }
+      </section>
+      <Footer
+        activeTasksCount={getActiveTasksCount()}
+        filter={filter}
+        onFilterChange={setFilter}
+        onClearCompleted={handleClearCompleted}
+      />
+    </div>
+  );
 }
+
+export default App;
